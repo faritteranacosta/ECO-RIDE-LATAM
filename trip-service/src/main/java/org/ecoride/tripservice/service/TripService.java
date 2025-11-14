@@ -7,7 +7,7 @@ import org.ecoride.tripservice.dto.CreateTripRequest;
 import org.ecoride.tripservice.dto.ReservationResponse;
 import org.ecoride.tripservice.dto.TripResponse;
 import org.ecoride.tripservice.events.ReservationEvents;
-import org.ecoride.tripservice.exception.Exceptions;
+import org.ecoride.tripservice.exception.BusinessException;
 import org.ecoride.tripservice.model.entity.Reservation;
 import org.ecoride.tripservice.model.entity.Trip;
 import org.ecoride.tripservice.model.enums.ReservationStatus;
@@ -89,11 +89,11 @@ public class TripService {
                 .orElseThrow(() -> new ResourceNotFoundException("Viaje no encontrado: " + tripId));
 
         if (!trip.hasAvailableSeats()) {
-            throw new Exceptions("No hay asientos disponibles para este viaje");
+            throw new BusinessException("No hay asientos disponibles para este viaje");
         }
 
         if (reservationRepository.existsActiveReservation(tripId, passengerId)) {
-            throw new Exceptions("Ya tienes una reserva activa para este viaje");
+            throw new BusinessException("Ya tienes una reserva activa para este viaje");
         }
 
         Reservation reservation = Reservation.builder()

@@ -254,6 +254,81 @@ services:
       timeout: 10s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: ecoride-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - ecoride-network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: ecoride-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://keycloak:8180/realms/ecoride
+      SPRING_REDIS_HOST: redis
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ecoride-network
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  trip-service:
+    build:
+      context: ./trip-service
+      dockerfile: Dockerfile
+    container_name: ecoride-trip-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-trip:5432/tripdb
+      SPRING_DATASOURCE_USERNAME: tripuser
+      SPRING_DATASOURCE_PASSWORD: trippass
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka/
+    depends_on:
+      postgres-trip:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+    networks:
+      - ecoride-network
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8081/actuator/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
 volumes:
   trip-data:
   passenger-data:
