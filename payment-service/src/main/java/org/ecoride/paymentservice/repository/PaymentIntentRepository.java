@@ -8,9 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface paymetIntentRepository extends JpaRepository<PaymentIntent, UUID> {
-
-    //Encontrar el intento de pago de una reserva específica
-    Optional<PaymentIntent> findByPaymentIntentId(UUID paymentIntentId);
+public interface PaymentIntentRepository extends JpaRepository<PaymentIntent, UUID> {
+    Optional<PaymentIntent> findByReservationId(UUID reservationId);
 
 }
