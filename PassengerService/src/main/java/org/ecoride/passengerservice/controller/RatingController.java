@@ -6,6 +6,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.ecoride.passengerservice.dto.RatingRequestDTO;
+import org.ecoride.passengerservice.dto.RatingResponseDTO;
+import org.ecoride.passengerservice.mapper.RatingMapper;
 import org.ecoride.passengerservice.model.entity.Rating;
 import org.ecoride.passengerservice.service.RatingService;
 import org.springframework.http.HttpStatus;
@@ -25,12 +27,12 @@ public class RatingController {
 
     @PostMapping
     @Operation(summary = "Create rating", description = "Rate another passenger after a trip")
-    public ResponseEntity<Rating> createRating(
+    public ResponseEntity<RatingResponseDTO> createRating(
             @AuthenticationPrincipal Jwt jwt,
             @Valid @RequestBody RatingRequestDTO request) {
 
         String keycloakSub = jwt.getSubject();
         Rating rating = ratingService.createRating(keycloakSub, request);
-        return new ResponseEntity<>(rating, HttpStatus.CREATED);
+        return new ResponseEntity<>(RatingMapper.toDto(rating), HttpStatus.CREATED);
     }
 }
